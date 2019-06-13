@@ -1,0 +1,54 @@
+const int pResistor = A0;
+const int pResistor2 = A1;
+#include <Servo.h>;
+
+Servo Axe1;
+float DiffValue;
+float ValueR;
+float ValueR2;
+float getDiffValue (){
+ValueR=analogRead(pResistor);
+ValueR2=analogRead(pResistor2);
+DiffValue=(ValueR/(ValueR2+5));
+return DiffValue;
+}
+float Position = 7;
+
+void setup() {
+Axe1.attach(9);
+Serial.begin(9600);
+pinMode(pResistor,INPUT);
+pinMode(pResistor2,INPUT);
+Axe1.write(Position);
+}
+
+void loop() {
+
+ValueR = analogRead(pResistor);
+Serial.print("Value 1 : ");
+Serial.println(ValueR);
+ValueR2 = analogRead(pResistor2);
+Serial.print("Value 2 : ");
+Serial.println(ValueR2);
+DiffValue = getDiffValue();
+Serial.print("Différence : ");
+Serial.println(DiffValue);
+
+while (DiffValue > 1.05)
+{
+Position = (Position-0.5);
+Axe1.write(Position);
+DiffValue = getDiffValue();
+delay(15);
+}
+
+while (DiffValue < 0.95)
+{
+Position = (Position+0.5);
+Axe1.write(Position);
+DiffValue = getDiffValue();
+delay(15);
+}
+
+delay(200);
+}
