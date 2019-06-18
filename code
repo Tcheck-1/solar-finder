@@ -1,54 +1,87 @@
+
+#include <Servo.h>;
 const int pResistor = A0;
 const int pResistor2 = A1;
-#include <Servo.h>;
-
 Servo Axe1;
 float DiffValue;
 float ValueR;
 float ValueR2;
+float PositionServo;
+float delta;
 float getDiffValue (){
-ValueR=analogRead(pResistor);
-ValueR2=analogRead(pResistor2);
-DiffValue=(ValueR/(ValueR2+5));
-return DiffValue;
+  ValueR=analogRead(pResistor);
+  ValueR2=analogRead(pResistor2);
+  DiffValue=(ValueR/(ValueR2+5));
+  return DiffValue;
 }
-float Position = 7;
+
+float position = 90;                           //Vérifier si il ne faut pas changer le nom de position (commande native)
 
 void setup() {
-Axe1.attach(9);
-Serial.begin(9600);
-pinMode(pResistor,INPUT);
-pinMode(pResistor2,INPUT);
-Axe1.write(Position);
+  Axe1.attach(9);
+  Serial.begin(9600);
+  pinMode(pResistor,INPUT);
+  pinMode(pResistor2,INPUT);
+  Axe1.write(position);
 }
 
 void loop() {
 
-ValueR = analogRead(pResistor);
-Serial.print("Value 1 : ");
-Serial.println(ValueR);
-ValueR2 = analogRead(pResistor2);
-Serial.print("Value 2 : ");
-Serial.println(ValueR2);
-DiffValue = getDiffValue();
-Serial.print("Différence : ");
-Serial.println(DiffValue);
 
-while (DiffValue > 1.05)
-{
-Position = (Position-0.5);
-Axe1.write(Position);
-DiffValue = getDiffValue();
-delay(15);
+
+  ValueR = analogRead(pResistor);
+  Serial.print("Value 1 : ");
+  Serial.println(ValueR);
+  ValueR2 = analogRead(pResistor2);
+  Serial.print("Value 2 : ");
+  Serial.println(ValueR2);
+  DiffValue = getDiffValue();
+  
+  Serial.print("Différence : ");
+  Serial.println(DiffValue);
+  Serial.print("Position : ");
+  Serial.println(PositionServo);
+  Serial.print("Delta : ");
+  Serial.print(delta);
+  PositionServo = Axe1.read() ;
+  Serial.println();
+
+if ((ValueR+ValueR2)>900){                      //Calibrer valeur minimum (bouton push ?)
+
+  while(DiffValue<.95 || DiffValue>1.05)
+  {
+    
+    delta = DiffValue-1;                       // delta < 0 if diff < 1 & delta > 0 if diff > 1
+    position+=delta;
+    Axe1.write(position);
+    delay(15);                                //Vérifier si besoin delay
+    DiffValue = getDiffValue();
+    ValueR = analogRead(pResistor);
+    
+    Serial.print("Value 1 : ");
+    Serial.println(ValueR);
+    ValueR2 = analogRead(pResistor2);
+  
+    Serial.print("Value 2 : ");
+    Serial.println(ValueR2);
+    DiffValue = getDiffValue();
+    Serial.print("Différence : ");
+    Serial.println(DiffValue);
+    Serial.print("Position : ");
+    Serial.println(PositionServo);
+    Serial.print("Delta : ");
+    Serial.println(delta);
+    PositionServo = Axe1.read() ;
+    Serial.print("Position servo : ");
+    Serial.println(PositionServo);
+    Serial.println();
+  }
 }
-
-while (DiffValue < 0.95)
-{
-Position = (Position+0.5);
-Axe1.write(Position);
-DiffValue = getDiffValue();
-delay(15);
+else if ((ValueR+ValueR2)<900) {
+position =90;
+Serial.print ("Night");
+ Axe1.write(position);
 }
-
-delay(200);
+Serial.println();
+  delay(200);
 }
